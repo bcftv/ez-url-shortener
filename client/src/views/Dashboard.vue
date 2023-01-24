@@ -18,7 +18,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
   <div class="dashboard">
     <div class="columns is-mobile">
       <div class="column">
-        <h1 class="title">Shortcuts</h1>
+        <h1 class="title">Short URLs</h1>
       </div>
       <div class="column is-2-desktop is-half-mobile">
         <button
@@ -72,7 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
               >Delete</button
             >
             <button
-              v-on:click="copyLink(apiUrl + '/' + link.id)"
+              v-on:click="copyLink($event, apiUrl + '/' + link.id)"
               class="button card-footer-item"
               >Copy</button
             >
@@ -88,7 +88,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
         <header class="modal-card-head">
           <p class="modal-card-title">
             <span v-if="modalTypeCreate">Create</span>
-            <span v-else>Update</span> Sliplink
+            <span v-else>Update</span> Short URL
           </p>
           <button
             class="delete"
@@ -103,7 +103,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
                 class="input"
                 v-model="model.id"
                 type="text"
-                placeholder="Short Link"
+                :placeholder="'Short Link (' + apiUrl +'/[Short Link])'"
                 required
                 :disabled="!modalTypeCreate"
               />
@@ -210,7 +210,7 @@ export default {
         .catch((err) => {
           // eslint-disable-next-line
           console.log(`POST to ${that.apiUrl}/app caught error ${err}`);
-          alert("SlipLink cannot be created. Bad format.");
+          alert("Short URL cannot be created. Bad format.");
         });
     },
     updateLink: function () {
@@ -227,11 +227,11 @@ export default {
             that.toggleModal();
             that.$store.commit("updateLink", response.data, that.currentIndex);
           } else {
-            alert("There was an issue deleting your SlipLink");
+            alert("There was an issue deleting your Short URL");
           }
         })
         .catch(() => {
-          alert("There was an issue deleting your SlipLink");
+          alert("There was an issue deleting your Short URL");
         });
     },
     deleteLink: function (id, ind) {
@@ -249,7 +249,7 @@ export default {
             if (response.status === 200) {
               that.$store.commit("removeLink", ind);
             } else {
-              alert("There was an issue deleting your SlipLink");
+              alert("There was an issue deleting your Short URL");
             }
           })
           .catch((err) => {
@@ -257,8 +257,13 @@ export default {
           });
       }
     },
-    copyLink: function (link) {
-      navigator.clipboard.writeText(link)
+    copyLink: function (event, link) {
+      let element = event.currentTarget;
+      navigator.clipboard.writeText(link);
+      element.innerHTML = "Copied";
+      setTimeout(() => {
+        element.innerHTML = "Copy";
+      }, 1000)
     },
   },
 };
