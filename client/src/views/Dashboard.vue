@@ -38,14 +38,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
       >
         <div class="card">
           <header class="card-header has-background-info">
-            <p class="card-header-title has-text-white">
-              {{ link.id }}
-            </p>
-            <a href="#" class="card-header-icon" aria-label="more options">
+            <a
+              target="_blank"
+              :href="apiUrl + '/' + link.id"
+              class="card-header-title has-text-white">
+              {{ apiUrl + '/' + link.id }}
+            </a>
+            <button class="card-header-icon" aria-label="more options">
               <span class="icon">
                 <i class="fas fa-angle-down" aria-hidden="true"></i>
               </span>
-            </a>
+            </button>
           </header>
           <div class="card-content">
             <div class="content">
@@ -58,23 +61,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
             </div>
           </div>
           <footer class="card-footer">
-            <a
+            <button
               v-on:click="toggleModal('edit', link, i)"
-              href="#"
-              class="card-footer-item"
-              >Edit</a
+              class="button card-footer-item"
+              >Edit</button
             >
-            <a
+            <button
               v-on:click="deleteLink(link.id, i)"
-              href="#"
-              class="card-footer-item"
-              >Delete</a
+              class="button card-footer-item"
+              >Delete</button
             >
-            <a
-              target="_blank"
-              :href="apiUrl + '/' + link.id"
-              class="card-footer-item"
-              >Try it</a
+            <button
+              v-on:click="copyLink(apiUrl + '/' + link.id)"
+              class="button card-footer-item"
+              >Copy</button
             >
           </footer>
         </div>
@@ -256,6 +256,9 @@ export default {
             alert(err);
           });
       }
+    },
+    copyLink: function (link) {
+      navigator.clipboard.writeText(link)
     },
   },
 };
