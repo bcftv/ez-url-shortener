@@ -30,16 +30,9 @@ Parameters:
     Type: String
     Description: Enables public client and local client for testing. (Less secure)
     Default: 'false'
-  GithubRepository:
-    Type: String
-    Description: Forked GitHub repository URL
-  PersonalAcessToken:
-    Type: String
-    Description: Github personal access token
-    NoEcho: true
   CustomDomain:
     Type: String
-    Description: Cstom domain added to client # only configures cognito for now. Manually handle domain on amplify console for client
+    Description: Custom domain added to client # only configures cognito for now. Manually handle domain on amplify console for client
     Default: none
 
 ###################################################################################################
@@ -133,11 +126,9 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
       CallbackURLs:
-        - !Join [ ".", [ https://master, !GetAtt AmplifyApp.DefaultDomain ]]
         - !If [IsLocal, http://localhost:8080, !Ref "AWS::NoValue"]
         - !If [HasCustomDomain, !Ref CustomDomain, !Ref "AWS::NoValue"]
       LogoutURLs:
-        - !Join [ ".", [ https://master, !GetAtt AmplifyApp.DefaultDomain ]]
         - !If [IsLocal, http://localhost:8080, !Ref "AWS::NoValue"]
         - !If [HasCustomDomain, !Ref CustomDomain, !Ref "AWS::NoValue"]
       AllowedOAuthFlowsUserPoolClient: true
@@ -187,43 +178,6 @@ Resources:
   ##   CloudFront access logs storage
   CloudFrontAccessLogsBucket:
     Type: AWS::S3::Bucket
-
-  ##   Amplify Application for hosting
-  AmplifyApp:
-    Type: AWS::Amplify::App
-    Properties:
-      Name: Url-Shortener-Client
-      Description: Basic client for URL Shortner
-      Repository: !Ref GithubRepository
-      AccessToken: !Ref PersonalAcessToken
-      BuildSpec: |-
-        version: 0.1
-        frontend:
-          phases:
-            preBuild:
-              commands:
-                - cd client
-                - npm ci
-            build:
-              commands:
-                - npm run build
-          artifacts:
-            baseDirectory: client/dist
-            files:
-              - '**/*'
-          cache:
-            paths:
-              - node_modules/**/*
-      IAMServiceRole: !GetAtt AmplifyRole.Arn
-
-  ##   Amplify Branch for hosting
-  AmplifyBranch:
-    Type: AWS::Amplify::Branch
-    Properties:
-      BranchName: master
-      AppId: !GetAtt AmplifyApp.AppId
-      Description: Master Branch
-      EnableAutoBuild: true
 
 ###################################################################################################
 ##   IAM Roles                                                                                   ##
@@ -281,28 +235,6 @@ Resources:
               - dynamodb:UpdateItem
               Effect: Allow
               Resource: !GetAtt LinkTable.Arn
-
-  ##   Amplify Hosting Role
-  AmplifyRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - amplify.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Policies:
-        - PolicyName: Amplify
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "amplify:*"
-                Resource: "*"
 
 ## CloudWatchRole for aws gateway account
   Account:
@@ -479,25 +411,3 @@ Outputs:
   VueAppClientId: 
     Description: Cognito User Pool Client Id
     Value: !Ref UserPoolClient
-
-  ClientDomainAddress:
-    Description: Domain for client
-    Value: !Join [ ".", [ https://master, !GetAtt AmplifyApp.DefaultDomain ]]
-
-  AmplifyAppId:
-    Description: Amplify application ID
-    Value: !GetAtt AmplifyApp.AppId
-  
-  AmplifyEnvironmentUpdateCommand:
-    Description: Command to add environment variables to the Amplify application
-    Value: !Sub
-      - aws amplify update-app --app-id ${AmplifyID} --environment-variables VUE_APP_NAME=${AppName},VUE_APP_CLIENT_ID=${UserPoolClient},VUE_APP_API_ROOT=${APIRoot},VUE_APP_AUTH_DOMAIN=${APIAuthDomain}
-      - AmplifyID: !GetAtt AmplifyApp.AppId
-        APIRoot: !Join ["", [ "https://", !GetAtt CloudFrontDistro.DomainName]]
-        APIAuthDomain: !Sub https://${AppName}-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com
-
-  AmplifyDeployCommand:
-    Description: Command to deploy the Amplify application
-    Value: !Sub
-      - aws amplify start-job --app-id ${AmplifyID} --branch-name master --job-type RELEASE
-      - AmplifyID: !GetAtt AmplifyApp.AppId

@@ -51,6 +51,23 @@ In the terminal, use the SAM CLI guided deployment the first time you deploy
 sam deploy -g
 ```
 
+```
+        Stack Name [URLShortener]:
+        AWS Region [us-west-2]: 
+        Parameter AppName [shortener]: 
+        Parameter UseLocalClient [false]: 
+        Parameter CustomDomain [client.akera.tech]: https://client.akera.tech
+        #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
+        Confirm changes before deploy [Y/n]: y
+        #SAM needs permission to be able to create roles to connect to the resources in your template
+        Allow SAM CLI IAM role creation [Y/n]: y
+        #Preserves the state of previously provisioned resources when an operation fails
+        Disable rollback [y/N]: n
+        Save arguments to configuration file [Y/n]: y
+        SAM configuration file [samconfig.toml]: 
+        SAM configuration environment [default]: 
+```
+
 #### Choose options
 You can choose the default for all options except *GithubRepository* and **
 
